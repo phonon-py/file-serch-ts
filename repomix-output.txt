@@ -1,0 +1,1961 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+<additional_info>
+
+</additional_info>
+
+</file_summary>
+
+<directory_structure>
+client/
+  public/
+    index.html
+  src/
+    components/
+      Search/
+        SearchForm.tsx
+        SearchPage.tsx
+        SearchResults.tsx
+    services/
+      FileSearchService.ts
+    utils/
+      formatUtils.ts
+    App.css
+    App.tsx
+    index.css
+    index.tsx
+  craco.config.js
+  package.json
+  tsconfig.json
+docs/
+  mockups/
+    mockup-initial.svg
+    mockup-results.svg
+  requirements/
+    requirements.md
+  README.md
+server/
+  src/
+    config/
+      allowedDirectories.ts
+    controllers/
+      FileSearchController.ts
+    middleware/
+      errorHandler.ts
+      validateSearch.ts
+    routes/
+      fileRoutes.ts
+    services/
+      FileSearchService.ts
+    utils/
+      fileSystemUtils.ts
+    server.ts
+  package.json
+  tsconfig.json
+shared/
+  types/
+    SearchTypes.ts
+  package.json
+  tsconfig.json
+.eslintrc.js
+.gitignore
+.prettierrc
+package.json
+tsconfig.base.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="client/public/index.html">
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="ファイル検索アプリケーション" />
+    <title>ファイル検索アプリ</title>
+  </head>
+  <body>
+    <noscript>このアプリを実行するには、JavaScriptを有効にする必要があります。</noscript>
+    <div id="root"></div>
+  </body>
+</html>
+</file>
+
+<file path="client/src/components/Search/SearchForm.tsx">
+// client/src/components/Search/SearchForm.tsx
+import React, { useState } from 'react';
+import { ISearchOptions } from '@shared/types/SearchTypes';
+
+interface ISearchFormProps {
+  onSearch: (path: string, pattern: string, options?: ISearchOptions) => void;
+  isLoading: boolean;
+}
+
+export const SearchForm: React.FC<ISearchFormProps> = ({ onSearch, isLoading }) => {
+  const [searchPath, setSearchPath] = useState<string>('/users/kimuratoshiyuki/dropbox');
+  const [searchPattern, setSearchPattern] = useState<string>('');
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
+  const [recursive, setRecursive] = useState<boolean>(true);
+  const [includeHidden, setIncludeHidden] = useState<boolean>(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!searchPattern.trim()) return;
+    
+    const options: ISearchOptions = {
+      recursive,
+      includeHidden
+    };
+    
+    onSearch(searchPath, searchPattern, options);
+  };
+
+  return (
+    <div className="search-form-container">
+      <form className="search-form" onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="searchPath">検索パス:</label>
+          <input
+            id="searchPath"
+            type="text"
+            value={searchPath}
+            onChange={(e) => setSearchPath(e.target.value)}
+            placeholder="検索を開始するパスを入力"
+            disabled={isLoading}
+          />
+        </div>
+        
+        <div className="form-group">
+          <label htmlFor="searchPattern">検索パターン:</label>
+          <input
+            id="searchPattern"
+            type="text"
+            value={searchPattern}
+            onChange={(e) => setSearchPattern(e.target.value)}
+            placeholder="検索するパターンを入力"
+            required
+            disabled={isLoading}
+          />
+        </div>
+        
+        <div className="form-actions">
+          <button 
+            type="button" 
+            className="toggle-advanced"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            disabled={isLoading}
+          >
+            {showAdvanced ? '詳細設定を隠す' : '詳細設定を表示'}
+          </button>
+          
+          <button 
+            type="submit" 
+            className="search-button"
+            disabled={isLoading || !searchPattern.trim()}
+          >
+            {isLoading ? '検索中...' : '検索'}
+          </button>
+        </div>
+        
+        {showAdvanced && (
+          <div className="advanced-options">
+            <div className="option-group">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={recursive}
+                  onChange={(e) => setRecursive(e.target.checked)}
+                  disabled={isLoading}
+                />
+                サブディレクトリを含める
+              </label>
+            </div>
+            
+            <div className="option-group">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={includeHidden}
+                  onChange={(e) => setIncludeHidden(e.target.checked)}
+                  disabled={isLoading}
+                />
+                隠しファイルを含める
+              </label>
+            </div>
+          </div>
+        )}
+      </form>
+    </div>
+  );
+};
+
+export default SearchForm;
+</file>
+
+<file path="client/src/components/Search/SearchPage.tsx">
+// client/src/components/Search/SearchPage.tsx
+import React, { useState } from 'react';
+import SearchForm from './SearchForm';
+import SearchResults from './SearchResults';
+import { IFileSearchResult, ISearchOptions } from '@shared/types/SearchTypes';
+import FileSearchService from '../../services/FileSearchService';
+
+const SearchPage: React.FC = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [results, setResults] = useState<IFileSearchResult[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [searchTime, setSearchTime] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSearch = async (
+    path: string, 
+    pattern: string, 
+    options?: ISearchOptions
+  ): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const response = await FileSearchService.searchFiles(path, pattern, options);
+      
+      setResults(response.results);
+      setTotalCount(response.totalCount);
+      setSearchTime(response.searchTime);
+    } catch (err) {
+      setResults([]);
+      setTotalCount(0);
+      setSearchTime(0);
+      setError(err instanceof Error ? err.message : '検索中にエラーが発生しました');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="search-page">
+      <h1>ファイル検索アプリ</h1>
+      
+      <SearchForm onSearch={handleSearch} isLoading={isLoading} />
+      
+      {error && (
+        <div className="error-message">
+          <p>{error}</p>
+        </div>
+      )}
+      
+      <SearchResults 
+        results={results} 
+        totalCount={totalCount} 
+        searchTime={searchTime}
+        isLoading={isLoading}
+      />
+    </div>
+  );
+};
+
+export default SearchPage;
+</file>
+
+<file path="client/src/components/Search/SearchResults.tsx">
+// client/src/components/Search/SearchResults.tsx
+import React, { useState } from 'react';
+import { IFileSearchResult } from '@shared/types/SearchTypes';
+import { formatFileSize } from '../../utils/formatUtils';
+
+interface ISearchResultsProps {
+  results: IFileSearchResult[];
+  totalCount: number;
+  searchTime: number;
+  isLoading: boolean;
+}
+
+export const SearchResults: React.FC<ISearchResultsProps> = ({ 
+  results, 
+  totalCount, 
+  searchTime,
+  isLoading
+}) => {
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopy = (path: string): void => {
+    navigator.clipboard.writeText(path)
+      .then(() => {
+        setCopiedId(path);
+        // 3秒後にコピー状態をリセット
+        setTimeout(() => setCopiedId(null), 3000);
+      })
+      .catch(err => {
+        console.error('クリップボードへのコピーに失敗しました:', err);
+        alert('パスのコピーに失敗しました');
+      });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="search-results-loading">
+        <div className="loading-spinner"></div>
+        <p>検索中...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="search-results">
+      <div className="results-header">
+        <h2>検索結果 ({totalCount}件)</h2>
+        {searchTime > 0 && (
+          <span className="search-time">検索時間: {searchTime.toFixed(2)}秒</span>
+        )}
+      </div>
+
+      {totalCount > 0 ? (
+        <ul className="results-list">
+          {results.map((result) => (
+            <li key={result.path} className="result-item">
+              <div className="file-info">
+                <span className="file-name">{result.fileName}</span>
+                <span className="file-path">{result.path}</span>
+                <div className="file-meta">
+                  <span className="file-size">{formatFileSize(result.size)}</span>
+                  <span className="file-date">
+                    {new Date(result.lastModified).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+              <button 
+                className={`copy-button ${copiedId === result.path ? 'copied' : ''}`}
+                onClick={() => handleCopy(result.path)}
+              >
+                {copiedId === result.path ? 'コピー済み' : 'コピー'}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="no-results">検索結果がありません</p>
+      )}
+    </div>
+  );
+};
+
+export default SearchResults;
+</file>
+
+<file path="client/src/services/FileSearchService.ts">
+// client/src/services/FileSearchService.ts
+import { 
+    ISearchRequest, 
+    ISearchResponse, 
+    ISearchOptions 
+  } from '@shared/types/SearchTypes';
+  
+  const API_URL = 'http://localhost:3001/api';
+  
+  class FileSearchService {
+    /**
+     * ファイル検索APIを呼び出す
+     * @param startPath 検索開始パス
+     * @param pattern 検索パターン
+     * @param options 検索オプション
+     * @returns 検索結果
+     */
+    public static async searchFiles(
+      startPath: string,
+      pattern: string,
+      options?: ISearchOptions
+    ): Promise<ISearchResponse> {
+      try {
+        const request: ISearchRequest = {
+          startPath,
+          pattern,
+          options
+        };
+  
+        const response = await fetch(`${API_URL}/search`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(request)
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || '検索に失敗しました');
+        }
+  
+        const data: ISearchResponse = await response.json();
+        return data;
+      } catch (error) {
+        console.error('検索エラー:', error);
+        throw error;
+      }
+    }
+  }
+  
+  export default FileSearchService;
+</file>
+
+<file path="client/src/utils/formatUtils.ts">
+// client/src/utils/formatUtils.ts
+
+/**
+ * ファイルサイズを人間が読みやすい形式に変換する
+ * @param bytes ファイルサイズ（バイト）
+ * @returns 人間が読みやすいファイルサイズ
+ */
+export function formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    
+    return `${parseFloat((bytes / Math.pow(1024, i)).toFixed(2))} ${sizes[i]}`;
+  }
+  
+  /**
+   * パスからファイル名を抽出する
+   * @param path ファイルパス
+   * @returns ファイル名
+   */
+  export function getFileName(path: string): string {
+    return path.split('/').pop() || path;
+  }
+  
+  /**
+   * パスからファイル拡張子を抽出する
+   * @param path ファイルパス
+   * @returns ファイル拡張子
+   */
+  export function getFileExtension(path: string): string {
+    const fileName = getFileName(path);
+    const lastDotIndex = fileName.lastIndexOf('.');
+    return lastDotIndex === -1 ? '' : fileName.slice(lastDotIndex);
+  }
+</file>
+
+<file path="client/src/App.css">
+/* App.css は index.css にスタイルが統合されているため空でOK */
+</file>
+
+<file path="client/src/App.tsx">
+// client/src/App.tsx
+import React from 'react';
+import SearchPage from './components/Search/SearchPage';
+import './App.css';
+
+const App: React.FC = () => {
+  return (
+    <div className="app-container">
+      <SearchPage />
+    </div>
+  );
+};
+
+export default App;
+</file>
+
+<file path="client/src/index.css">
+/* client/src/index.css */
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f5f7fa;
+    color: #333;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  code, .file-path {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+      monospace;
+  }
+  
+  /* client/src/App.css */
+  .app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  /* SearchForm.css */
+  .search-form-container {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .form-group label {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  
+  .form-group input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    color: #333;
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+  }
+  
+  .search-button {
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .search-button:hover {
+    background-color: #3367d6;
+  }
+  
+  .search-button:disabled {
+    background-color: #a4a4a4;
+    cursor: not-allowed;
+  }
+  
+  .toggle-advanced {
+    background: none;
+    border: none;
+    color: #4285f4;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: underline;
+  }
+  
+  .toggle-advanced:hover {
+    color: #3367d6;
+  }
+  
+  .toggle-advanced:disabled {
+    color: #a4a4a4;
+    cursor: not-allowed;
+  }
+  
+  .advanced-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 10px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+  }
+  
+  .option-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .option-group label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    font-weight: normal;
+  }
+  
+  /* SearchResults.css */
+  .search-results {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .results-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #333;
+  }
+  
+  .search-time {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .results-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+  }
+  
+  .result-item:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .file-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .file-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: #333;
+  }
+  
+  .file-path {
+    font-size: 13px;
+    color: #666;
+    word-break: break-all;
+    overflow-wrap: break-word;
+  }
+  
+  .file-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 12px;
+    color: #888;
+  }
+  
+  .copy-button {
+    background-color: #f1f1f1;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    transition: all 0.2s;
+    min-width: 80px;
+  }
+  
+  .copy-button:hover {
+    background-color: #e1e1e1;
+  }
+  
+  .copy-button.copied {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .no-results {
+    text-align: center;
+    color: #666;
+    padding: 30px 0;
+    font-style: italic;
+  }
+  
+  .search-results-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 0;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .loading-spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 4px solid #4285f4;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .error-message {
+    background-color: #ffebee;
+    color: #d32f2f;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-left: 5px solid #d32f2f;
+  }
+  
+  /* SearchPage.css */
+  .search-page {
+    padding: 20px 0;
+  }
+  
+  .search-page h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+  }
+  
+  /* レスポンシブデザイン */
+  @media (max-width: 768px) {
+    .app-container {
+      padding: 10px;
+    }
+    
+    .form-actions {
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .search-button, .toggle-advanced {
+      width: 100%;
+    }
+    
+    .result-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    
+    .copy-button {
+      align-self: flex-end;
+    }
+  }
+</file>
+
+<file path="client/src/index.tsx">
+// client/src/index.tsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+const root = ReactDOM.createRoot(
+  document.getElementById('root') as HTMLElement
+);
+
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+</file>
+
+<file path="client/craco.config.js">
+const path = require('path');
+
+module.exports = {
+  webpack: {
+    alias: {
+      '@shared': path.resolve(__dirname, '../shared'),
+    },
+  },
+};
+</file>
+
+<file path="client/package.json">
+{
+  "name": "client",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@craco/craco": "^7.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.4.3",
+    "@types/jest": "^29.5.1",
+    "@types/node": "^18.16.3",
+    "@types/react": "^18.2.6",
+    "@types/react-dom": "^18.2.4",
+    "react-scripts": "5.0.1",
+    "typescript": "^4.9.5"
+  },
+  "scripts": {
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
+    "eject": "react-scripts eject",
+    "dev": "craco start",
+    "lint": "eslint . --ext .ts,.tsx"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
+</file>
+
+<file path="client/tsconfig.json">
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@shared/*": ["../shared/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "references": [{ "path": "../shared" }]
+}
+</file>
+
+<file path="docs/mockups/mockup-initial.svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 900">
+  <!-- 背景 -->
+  <rect width="800" height="900" fill="#f5f7fa" />
+  
+  <!-- アプリコンテナ -->
+  <rect x="100" y="50" width="600" height="800" rx="10" ry="10" fill="white" stroke="#e1e4e8" stroke-width="1" />
+  
+  <!-- ヘッダー -->
+  <rect x="100" y="50" width="600" height="60" rx="10" ry="10" fill="#4285f4" />
+  <text x="400" y="90" font-family="Arial" font-size="24" fill="white" text-anchor="middle">ファイル検索アプリ</text>
+  
+  <!-- 検索フォーム -->
+  <rect x="120" y="130" width="560" height="180" rx="8" ry="8" fill="#f5f5f5" stroke="#e1e4e8" stroke-width="1" />
+  
+  <!-- 検索パスラベルと入力欄 -->
+  <text x="140" y="160" font-family="Arial" font-size="14" fill="#333" font-weight="bold">検索パス:</text>
+  <rect x="140" y="170" width="520" height="40" rx="4" ry="4" fill="white" stroke="#ddd" stroke-width="1" />
+  <text x="150" y="195" font-family="Arial" font-size="14" fill="#666">/users/kimuratoshiyuki/dropbox</text>
+  
+  <!-- 検索パターンラベルと入力欄 -->
+  <text x="140" y="235" font-family="Arial" font-size="14" fill="#333" font-weight="bold">検索パターン:</text>
+  <rect x="140" y="245" width="520" height="40" rx="4" ry="4" fill="white" stroke="#ddd" stroke-width="1" />
+  <text x="150" y="270" font-family="Arial" font-size="14" fill="#999">検索するパターンを入力</text>
+  
+  <!-- 検索ボタン -->
+  <rect x="140" y="300" width="520" height="40" rx="4" ry="4" fill="#4285f4" />
+  <text x="400" y="325" font-family="Arial" font-size="16" fill="white" text-anchor="middle">検索</text>
+  
+  <!-- 検索結果エリア（初期状態） -->
+  <rect x="120" y="340" width="560" height="480" rx="8" ry="8" fill="white" stroke="#e1e4e8" stroke-width="1" />
+  <text x="140" y="375" font-family="Arial" font-size="18" fill="#333" font-weight="bold">検索結果 (0件)</text>
+  <line x1="140" y1="385" x2="660" y2="385" stroke="#eee" stroke-width="1" />
+  
+  <!-- 初期メッセージ -->
+  <text x="400" y="500" font-family="Arial" font-size="16" fill="#999" text-anchor="middle" font-style="italic">検索結果がありません</text>
+  
+  <!-- 検索後の状態（半透明で表示） -->
+  <g opacity="0.3">
+    <!-- 検索パターン入力済み -->
+    <rect x="140" y="245" width="520" height="40" rx="4" ry="4" fill="white" stroke="#ddd" stroke-width="1" />
+    <text x="150" y="270" font-family="Arial" font-size="14" fill="#333">melodic_158_G#min</text>
+    
+    <!-- 検索結果ヘッダー -->
+    <text x="140" y="375" font-family="Arial" font-size="18" fill="#333" font-weight="bold">検索結果 (2件)</text>
+    
+    <!-- 検索結果リスト -->
+    <rect x="140" y="400" width="520" height="60" rx="4" ry="4" fill="#f9f9f9" stroke="#eee" stroke-width="1" />
+    <text x="155" y="435" font-family="Consolas, monospace" font-size="14" fill="#333">/Users/kimuratoshiyuki/Dropbox/FL_flp_backup/melodic_158_G#min.flp</text>
+    <rect x="560" y="415" width="80" height="30" rx="4" ry="4" fill="#f1f1f1" stroke="#ddd" stroke-width="1" />
+    <text x="600" y="435" font-family="Arial" font-size="12" fill="#333" text-anchor="middle">コピー</text>
+    
+    <rect x="140" y="470" width="520" height="60" rx="4" ry="4" fill="#f9f9f9" stroke="#eee" stroke-width="1" />
+    <text x="155" y="505" font-family="Consolas, monospace" font-size="14" fill="#333">/Users/kimuratoshiyuki/Dropbox/melodic_158_G#min.mp3</text>
+    <rect x="560" y="485" width="80" height="30" rx="4" ry="4" fill="#f1f1f1" stroke="#ddd" stroke-width="1" />
+    <text x="600" y="505" font-family="Arial" font-size="12" fill="#333" text-anchor="middle">コピー</text>
+  </g>
+</svg>
+</file>
+
+<file path="docs/mockups/mockup-results.svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 900">
+  <!-- 背景 -->
+  <rect width="800" height="900" fill="#f5f7fa" />
+  
+  <!-- アプリコンテナ -->
+  <rect x="100" y="50" width="600" height="800" rx="10" ry="10" fill="white" stroke="#e1e4e8" stroke-width="1" />
+  
+  <!-- ヘッダー -->
+  <rect x="100" y="50" width="600" height="60" rx="10" ry="10" fill="#4285f4" />
+  <text x="400" y="90" font-family="Arial" font-size="24" fill="white" text-anchor="middle">ファイル検索アプリ</text>
+  
+  <!-- 検索フォーム -->
+  <rect x="120" y="130" width="560" height="180" rx="8" ry="8" fill="#f5f5f5" stroke="#e1e4e8" stroke-width="1" />
+  
+  <!-- 検索パスラベルと入力欄 -->
+  <text x="140" y="160" font-family="Arial" font-size="14" fill="#333" font-weight="bold">検索パス:</text>
+  <rect x="140" y="170" width="520" height="40" rx="4" ry="4" fill="white" stroke="#ddd" stroke-width="1" />
+  <text x="150" y="195" font-family="Arial" font-size="14" fill="#666">/users/kimuratoshiyuki/dropbox</text>
+  
+  <!-- 検索パターンラベルと入力欄 -->
+  <text x="140" y="235" font-family="Arial" font-size="14" fill="#333" font-weight="bold">検索パターン:</text>
+  <rect x="140" y="245" width="520" height="40" rx="4" ry="4" fill="white" stroke="#ddd" stroke-width="1" />
+  <text x="150" y="270" font-family="Arial" font-size="14" fill="#333">melodic_158_G#min</text>
+  
+  <!-- 検索ボタン -->
+  <rect x="140" y="300" width="520" height="40" rx="4" ry="4" fill="#3367d6" />
+  <text x="400" y="325" font-family="Arial" font-size="16" fill="white" text-anchor="middle">検索</text>
+  
+  <!-- 検索結果エリア -->
+  <rect x="120" y="340" width="560" height="480" rx="8" ry="8" fill="white" stroke="#e1e4e8" stroke-width="1" />
+  <text x="140" y="375" font-family="Arial" font-size="18" fill="#333" font-weight="bold">検索結果 (2件)</text>
+  <line x1="140" y1="385" x2="660" y2="385" stroke="#eee" stroke-width="1" />
+  
+  <!-- 検索結果リスト -->
+  <!-- 結果1 -->
+  <rect x="140" y="400" width="520" height="60" rx="4" ry="4" fill="#f9f9f9" stroke="#eee" stroke-width="1" />
+  <text x="155" y="435" font-family="Consolas, monospace" font-size="14" fill="#333">/Users/kimuratoshiyuki/Dropbox/FL_flp_backup/melodic_158_G#min.flp</text>
+  <rect x="560" y="415" width="80" height="30" rx="4" ry="4" fill="#f1f1f1" stroke="#ddd" stroke-width="1" />
+  <text x="600" y="435" font-family="Arial" font-size="12" fill="#333" text-anchor="middle">コピー</text>
+  
+  <!-- 結果2 -->
+  <rect x="140" y="470" width="520" height="60" rx="4" ry="4" fill="#f9f9f9" stroke="#eee" stroke-width="1" />
+  <text x="155" y="505" font-family="Consolas, monospace" font-size="14" fill="#333">/Users/kimuratoshiyuki/Dropbox/melodic_158_G#min.mp3</text>
+  <rect x="560" y="485" width="80" height="30" rx="4" ry="4" fill="#f1f1f1" stroke="#ddd" stroke-width="1" />
+  <text x="600" y="505" font-family="Arial" font-size="12" fill="#333" text-anchor="middle">コピー</text>
+  
+  <!-- 結果3（別の検索例） -->
+  <rect x="140" y="540" width="520" height="60" rx="4" ry="4" fill="#f9f9f9" stroke="#eee" stroke-width="1" />
+  <rect opacity="0.3" x="140" y="540" width="520" height="60" rx="4" ry="4" fill="#e6f7ff" />
+  <text x="155" y="575" font-family="Consolas, monospace" font-size="14" fill="#333">/Users/kimuratoshiyuki/Dropbox/Archive/melodic_158_G#min_old.flp</text>
+  <rect x="560" y="555" width="80" height="30" rx="4" ry="4" fill="#f1f1f1" stroke="#ddd" stroke-width="1" />
+  <text x="600" y="575" font-family="Arial" font-size="12" fill="#333" text-anchor="middle">コピー</text>
+  
+  <!-- コピー成功通知 -->
+  <rect x="320" y="200" width="200" height="50" rx="25" ry="25" fill="rgba(0,0,0,0.7)" />
+  <text x="420" y="232" font-family="Arial" font-size="14" fill="white" text-anchor="middle">パスをコピーしました</text>
+</svg>
+</file>
+
+<file path="docs/requirements/requirements.md">
+# ファイル検索アプリ 要件定義書
+
+## 1. プロジェクト概要
+
+### 1.1 目的
+ファイル名のパターンを入力するだけで、指定されたディレクトリ内のファイルを簡単に検索し、該当するファイルパスをリスト表示するウェブアプリケーションを開発する。
+
+### 1.2 背景
+ユーザーは多数のファイルを管理しており、特定のパターンを含むファイルを素早く見つける必要がある。特に音楽制作関連のファイル（.flp, .mp3など）を効率的に検索する手段が求められている。
+
+### 1.3 主要なステークホルダー
+- エンドユーザー：音楽制作者および大量のファイルを管理する必要のあるユーザー
+- 開発者：アプリケーションの実装および保守を担当する技術チーム
+
+## 2. 機能要件
+
+### 2.1 基本機能
+1. **検索機能**
+   - 指定された開始ディレクトリから再帰的にファイルを検索できる
+   - ファイル名やパスに特定のパターンを含むファイルを検索できる
+   - 大文字・小文字を区別しない検索を実行する
+   - 検索中のローディング状態を表示する
+
+2. **検索結果表示**
+   - 検索結果をリスト形式で表示する
+   - 各結果項目に完全なファイルパスを表示する
+   - 検索結果の総数を表示する
+   - 検索結果が存在しない場合は適切なメッセージを表示する
+
+3. **ユーティリティ機能**
+   - ファイルパスをクリップボードにコピーできるボタンを各結果に表示する
+   - コピー成功時にフィードバックを表示する
+
+### 2.2 オプション機能（将来実装）
+1. **検索フィルタ**
+   - ファイル拡張子による絞り込み
+   - 日付範囲による絞り込み
+   - ファイルサイズによる絞り込み
+
+2. **拡張機能**
+   - 検索履歴の保存と再利用
+   - 正規表現による高度な検索
+   - 検索結果のエクスポート機能
+
+## 3. 非機能要件
+
+### 3.1 パフォーマンス
+- 大規模ディレクトリの検索でも応答時間を5秒以内に抑える
+- 検索中は進捗状況をユーザーに表示する
+- 最低1000件までの検索結果を扱えること
+
+### 3.2 セキュリティ
+- アクセス可能なディレクトリを制限する仕組みを実装
+- ファイルシステムの安全性を確保するためのバリデーションを実装
+- パス内の特殊文字やエスケープシーケンスに対する適切な処理
+
+### 3.3 ユーザビリティ
+- シンプルで直感的なユーザーインターフェース
+- レスポンシブデザインによるモバイル対応
+- アクセシビリティガイドラインへの準拠
+
+### 3.4 信頼性
+- エラー発生時のグレースフルな処理と明確なエラーメッセージ
+- 検索処理のタイムアウト機能
+- クラッシュからの回復機能
+
+## 4. 技術仕様
+
+### 4.1 フロントエンド
+- **フレームワーク**: React
+- **言語**: TypeScript
+- **スタイリング**: CSS
+- **主要コンポーネント**:
+  - 検索フォームコンポーネント
+  - 検索結果リストコンポーネント
+  - ローディングインジケータ
+  - 通知コンポーネント
+
+### 4.2 バックエンド
+- **フレームワーク**: Express.js
+- **言語**: TypeScript/Node.js
+- **主要機能**:
+  - ファイルシステム操作用API
+  - パターンマッチング処理
+  - エラーハンドリングミドルウェア
+
+### 4.3 デプロイメント
+- **開発環境**: ローカル開発サーバー
+- **本番環境**: クラウドホスティングまたはオンプレミスサーバー
+
+## 5. ユーザーインターフェース
+
+### 5.1 画面構成
+1. **メイン画面**
+   - ヘッダー：アプリケーションタイトル
+   - 検索フォーム：検索パス入力欄、検索パターン入力欄、検索ボタン
+   - 検索結果エリア：結果リスト、ステータス表示
+
+### 5.2 ユーザーフロー
+1. ユーザーがアプリにアクセス
+2. デフォルトの検索パスが表示される
+3. ユーザーが検索パターンを入力
+4. 検索ボタンをクリック
+5. ローディングインジケータが表示される
+6. 検索結果が表示される
+7. ユーザーが必要に応じてファイルパスをコピー
+
+## 6. テスト要件
+
+### 6.1 ユニットテスト
+- 検索ロジックのテスト
+- コンポーネントレンダリングのテスト
+- エラーハンドリングのテスト
+
+### 6.2 統合テスト
+- フロントエンドとバックエンドの連携テスト
+- APIレスポンスの検証
+
+### 6.3 ユーザー受け入れテスト
+- 実際のユースケースに基づいたシナリオテスト
+- 異なるデバイスとブラウザでの動作確認
+
+## 7. プロジェクト計画
+
+### 7.1 マイルストーン
+1. 要件定義とデザイン承認: 1週間
+2. フロントエンド実装: 2週間
+3. バックエンド実装: 2週間
+4. 統合とテスト: 1週間
+5. ユーザーテストとフィードバック: 1週間
+6. リリース準備: 1週間
+
+### 7.2 成果物
+- 要件定義書
+- UIモックアップ
+- ソースコード
+- テスト報告書
+- ユーザーマニュアル
+
+## 8. リスクと制約
+
+### 8.1 リスク
+- 大規模ディレクトリの検索によるパフォーマンス低下
+- ファイルシステム権限の問題
+- クロスプラットフォームでの動作の差異
+
+### 8.2 制約
+- セキュリティ上の理由からアクセス可能なディレクトリの制限
+- ブラウザの機能制限（特にファイルシステムへのアクセス）
+- 多言語ファイル名の処理における制約
+
+## 9. 承認
+
+| 役割 | 氏名 | 署名 | 日付 |
+|------|------|------|------|
+| プロジェクトマネージャー | | | |
+| 開発リーダー | | | |
+| エンドユーザー代表 | | | |
+</file>
+
+<file path="docs/README.md">
+# ファイル検索アプリケーション
+
+これはTypeScriptで実装されたファイル検索アプリケーションです。指定されたディレクトリ内のファイルをパターンで検索し、結果を一覧表示します。
+
+## 機能
+
+- ディレクトリ内のファイルをパターンマッチで検索
+- 再帰的な検索オプション
+- 検索結果の一覧表示（ファイル名、パス、サイズ、更新日時）
+- ファイルパスのクリップボードへのコピー
+- 隠しファイルの表示/非表示オプション
+
+## 技術スタック
+
+- **フロントエンド**: React + TypeScript
+- **バックエンド**: Express.js + TypeScript
+- **アーキテクチャ**: RESTfulなAPIとクライアント構成
+
+## プロジェクト構造
+
+```
+file-search-ts/
+├── client/         # フロントエンドのReactアプリケーション
+├── server/         # バックエンドのExpress.jsサーバー
+├── shared/         # 共有型定義
+└── docs/           # プロジェクトドキュメント
+    ├── requirements/  # 要件定義
+    └── mockups/       # UIモックアップ
+```
+
+## 開発環境のセットアップ
+
+```bash
+# リポジトリのクローン
+git clone https://github.com/yourusername/file-search-ts.git
+cd file-search-ts
+
+# 依存パッケージのインストール
+npm install
+cd client && npm install
+cd ../server && npm install
+cd ..
+
+# 開発サーバーの起動
+npm run dev
+```
+
+## ビルドと実行
+
+```bash
+# プロジェクトのビルド
+npm run build
+
+# 本番環境での実行
+npm start
+```
+
+## 使い方
+
+1. 検索パスを入力（デフォルトは `/Users/kimuratoshiyuki/Dropbox`）
+2. 検索パターンを入力（例: `melodic` や `.mp3`）
+3. オプションの設定（サブディレクトリを含める、隠しファイルを含めるなど）
+4. 検索ボタンをクリック
+5. 検索結果から必要なファイルパスをコピー
+
+## トラブルシューティング
+
+### 検索が正常に動作しない場合
+
+- 検索パスが存在することを確認
+- 大文字小文字の区別に注意（パスは正確に入力）
+- サーバーが起動していることを確認（ポート3001）
+
+### アクセス権限エラーが発生する場合
+
+- サーバー側の `allowedDirectories.ts` ファイルで許可されたディレクトリが正しく設定されているか確認
+- パスの大文字小文字が正確に一致しているか確認（特にMacOSでは重要）
+- 該当ディレクトリにアクセス権限があるか確認
+
+## セキュリティに関する注意点
+
+このアプリケーションは、ファイルシステムにアクセスするため、セキュリティに注意が必要です：
+
+- 信頼できるディレクトリのみを `allowedDirectories.ts` に設定
+- パスインジェクション攻撃を防ぐためのバリデーションが実装されています
+- 重要なシステムディレクトリへのアクセスは制限されています
+
+## 貢献方法
+
+1. このリポジトリをフォーク
+2. 新しいブランチを作成 (`git checkout -b feature/amazing-feature`)
+3. 変更をコミット (`git commit -m 'Add amazing feature'`)
+4. ブランチをプッシュ (`git push origin feature/amazing-feature`)
+5. プルリクエストを作成
+
+## ライセンス
+
+MIT
+
+## 謝辞
+
+- このプロジェクトは TypeScript、React、Express.js の優れた機能を活用しています
+- アプリケーションの設計と実装にあたり、コミュニティの多くのリソースを参考にしました
+</file>
+
+<file path="server/src/config/allowedDirectories.ts">
+// server/src/config/allowedDirectories.ts
+
+/**
+ * 検索が許可されているディレクトリのリスト
+ * セキュリティ上の理由から、検索可能なディレクトリを制限
+ */
+export const ALLOWED_DIRECTORIES: string[] = [
+    '/Users/kimuratoshiyuki/Dropbox'
+    // 必要に応じて他の許可されたディレクトリを追加
+  ];
+</file>
+
+<file path="server/src/controllers/FileSearchController.ts">
+// server/src/controllers/FileSearchController.ts
+import { Request, Response, NextFunction } from 'express';
+import { ISearchRequest, ISearchResponse } from '@shared/types/SearchTypes';
+import FileSearchService from '../services/FileSearchService';
+
+class FileSearchController {
+  /**
+   * ファイルを検索する
+   * @param req リクエスト
+   * @param res レスポンス
+   * @param next 次のミドルウェア
+   */
+  public static async searchFiles(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { startPath, pattern, options } = req.body as ISearchRequest;
+      
+      // バリデーション
+      if (!startPath || !pattern) {
+        res.status(400).json({ 
+          error: '検索パスと検索パターンの両方が必要です' 
+        });
+        return;
+      }
+
+      // 検索サービスを呼び出し
+      const startTime = Date.now();
+      const results = await FileSearchService.searchFiles(startPath, pattern, options);
+      const searchTime = (Date.now() - startTime) / 1000; // 秒単位
+
+      // レスポンスの作成
+      const response: ISearchResponse = {
+        results,
+        totalCount: results.length,
+        searchTime
+      };
+
+      res.json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+export default FileSearchController;
+</file>
+
+<file path="server/src/middleware/errorHandler.ts">
+// server/src/middleware/errorHandler.ts
+import { Request, Response, NextFunction } from 'express';
+
+interface IErrorWithStatus extends Error {
+  status?: number;
+}
+
+/**
+ * エラーハンドリングミドルウェア
+ * アプリケーションで発生した例外を適切に処理し、クライアントに応答する
+ */
+const errorHandler = (
+  err: IErrorWithStatus,
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  console.error('エラーが発生しました:', err);
+
+  const statusCode = err.status || 500;
+  const message = statusCode === 500 
+    ? 'サーバー内部エラーが発生しました' 
+    : err.message;
+
+  res.status(statusCode).json({
+    error: message,
+    statusCode,
+    timestamp: new Date().toISOString(),
+    path: req.path
+  });
+};
+
+export default errorHandler;
+</file>
+
+<file path="server/src/middleware/validateSearch.ts">
+// server/src/middleware/validateSearch.ts
+import { Request, Response, NextFunction } from 'express';
+import { ISearchRequest } from '@shared/types/SearchTypes';
+import { sanitizePath } from '../utils/fileSystemUtils';
+
+/**
+ * 検索リクエストのバリデーションミドルウェア
+ * リクエストボディの検証と不正な入力の防止を行う
+ */
+const validateSearch = (req: Request, res: Response, next: NextFunction): void => {
+  try {
+    const { startPath, pattern, options } = req.body as Partial<ISearchRequest>;
+    
+    // 必須フィールドの確認
+    if (!startPath || typeof startPath !== 'string') {
+      res.status(400).json({ error: '検索パスは必須で、文字列である必要があります' });
+      return;
+    }
+
+    if (!pattern || typeof pattern !== 'string') {
+      res.status(400).json({ error: '検索パターンは必須で、文字列である必要があります' });
+      return;
+    }
+
+    // パスの長さ制限
+    if (startPath.length > 500) {
+      res.status(400).json({ error: '検索パスが長すぎます' });
+      return;
+    }
+
+    // パターンの長さ制限
+    if (pattern.length > 100) {
+      res.status(400).json({ error: '検索パターンが長すぎます' });
+      return;
+    }
+
+    // オプションのバリデーション
+    if (options) {
+      const { recursive, includeHidden, maxResults, timeout } = options;
+
+      // 型チェック
+      if (recursive !== undefined && typeof recursive !== 'boolean') {
+        res.status(400).json({ error: 'recursive オプションは真偽値である必要があります' });
+        return;
+      }
+
+      if (includeHidden !== undefined && typeof includeHidden !== 'boolean') {
+        res.status(400).json({ error: 'includeHidden オプションは真偽値である必要があります' });
+        return;
+      }
+
+      // 数値の範囲チェック
+      if (maxResults !== undefined) {
+        if (typeof maxResults !== 'number' || maxResults < 1 || maxResults > 5000) {
+          res.status(400).json({ error: 'maxResults オプションは1から5000の間の数値である必要があります' });
+          return;
+        }
+      }
+
+      if (timeout !== undefined) {
+        if (typeof timeout !== 'number' || timeout < 1000 || timeout > 60000) {
+          res.status(400).json({ error: 'timeout オプションは1000から60000の間の数値である必要があります' });
+          return;
+        }
+      }
+    }
+
+    // パスのサニタイズ
+    req.body.startPath = sanitizePath(startPath);
+
+    // 次のミドルウェアへ
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default validateSearch;
+</file>
+
+<file path="server/src/routes/fileRoutes.ts">
+// server/src/routes/fileRoutes.ts
+import { Router } from 'express';
+import FileSearchController from '../controllers/FileSearchController';
+import validateSearch from '../middleware/validateSearch';
+
+const router = Router();
+
+/**
+ * @route POST /api/search
+ * @desc ファイル検索API
+ * @access Public
+ */
+router.post('/search', validateSearch, FileSearchController.searchFiles);
+
+export default router;
+</file>
+
+<file path="server/src/services/FileSearchService.ts">
+// server/src/services/FileSearchService.ts
+import fs from 'fs';
+import path from 'path';
+import { IFileSearchResult, ISearchOptions } from '@shared/types/SearchTypes';
+import { isAllowedPath } from '../utils/fileSystemUtils';
+
+class FileSearchService {
+  /**
+   * ファイルを検索する
+   * @param startPath 検索開始パス
+   * @param pattern 検索パターン
+   * @param options 検索オプション
+   * @returns 検索結果
+   */
+  public static async searchFiles(
+    startPath: string,
+    pattern: string,
+    options: ISearchOptions = {}
+  ): Promise<IFileSearchResult[]> {
+    // デフォルトオプション
+    const defaultOptions: Required<ISearchOptions> = {
+      recursive: true,
+      includeHidden: false,
+      maxResults: 1000,
+      timeout: 30000 // 30秒
+    };
+
+    // オプションのマージ
+    const searchOptions: Required<ISearchOptions> = {
+      ...defaultOptions,
+      ...options
+    };
+
+    // パス検証（セキュリティ対策）
+    if (!await isAllowedPath(startPath)) {
+      throw new Error('指定されたパスでの検索は許可されていません');
+    }
+
+    // startPathが存在するか確認
+    if (!fs.existsSync(startPath)) {
+      throw new Error(`指定されたパス ${startPath} は存在しません`);
+    }
+
+    // 検索結果
+    const results: IFileSearchResult[] = [];
+    
+    // タイムアウト処理
+    const timeoutId = setTimeout(() => {
+      throw new Error('検索がタイムアウトしました');
+    }, searchOptions.timeout);
+
+    // 検索パターンを小文字に変換（大文字小文字を区別しない検索のため）
+    const lowerPattern = pattern.toLowerCase();
+
+    try {
+      // 再帰的に検索
+      await this.recursiveSearch(
+        startPath,
+        lowerPattern,
+        results,
+        searchOptions
+      );
+      
+      // タイムアウトをクリア
+      clearTimeout(timeoutId);
+      
+      return results;
+    } catch (error) {
+      // タイムアウトをクリア
+      clearTimeout(timeoutId);
+      throw error;
+    }
+  }
+
+  /**
+   * 再帰的に検索する
+   */
+  private static async recursiveSearch(
+    currentPath: string,
+    pattern: string,
+    results: IFileSearchResult[],
+    options: Required<ISearchOptions>
+  ): Promise<void> {
+    // 結果数が上限に達した場合は終了
+    if (results.length >= options.maxResults) {
+      return;
+    }
+
+    try {
+      // ディレクトリ内のファイルとフォルダを取得
+      const files = await fs.promises.readdir(currentPath);
+      
+      // 各ファイルを処理
+      for (const file of files) {
+        // 隠しファイルをスキップ（オプションに応じて）
+        if (!options.includeHidden && file.startsWith('.')) {
+          continue;
+        }
+
+        const fullPath = path.join(currentPath, file);
+        
+        try {
+          const stats = await fs.promises.stat(fullPath);
+          
+          // ディレクトリの場合
+          if (stats.isDirectory() && options.recursive) {
+            await this.recursiveSearch(
+              fullPath,
+              pattern,
+              results,
+              options
+            );
+          } 
+          // ファイルの場合
+          else if (stats.isFile()) {
+            // ファイルパスを小文字に変換して検索
+            if (fullPath.toLowerCase().includes(pattern)) {
+              results.push({
+                path: fullPath,
+                fileName: path.basename(fullPath),
+                extension: path.extname(fullPath),
+                lastModified: stats.mtime,
+                size: stats.size
+              });
+            }
+          }
+          
+          // 結果数が上限に達した場合は終了
+          if (results.length >= options.maxResults) {
+            return;
+          }
+        } catch (err) {
+          // 個々のファイル処理エラーは無視（アクセス権限の問題など）
+          console.error(`ファイル処理エラー: ${fullPath}`, err);
+        }
+      }
+    } catch (err) {
+      // ディレクトリの読み取りエラー
+      console.error(`ディレクトリ読み取りエラー: ${currentPath}`, err);
+    }
+  }
+}
+
+export default FileSearchService;
+</file>
+
+<file path="server/src/utils/fileSystemUtils.ts">
+// server/src/utils/fileSystemUtils.ts
+import path from 'path';
+import { ALLOWED_DIRECTORIES } from '../config/allowedDirectories';
+
+/**
+ * 指定されたパスが許可されたディレクトリ内かを確認する
+ * @param checkPath 確認するパス
+ * @returns 許可された場合はtrue、そうでない場合はfalse
+ */
+export async function isAllowedPath(checkPath: string): Promise<boolean> {
+  // 入力パスを正規化
+  const normalizedPath = path.normalize(checkPath);
+  
+  // パスが絶対パスであることを確認
+  if (!path.isAbsolute(normalizedPath)) {
+    return false;
+  }
+  
+  // macOSでは大文字小文字を区別しないようにする
+  const lowerNormalizedPath = normalizedPath.toLowerCase();
+  
+  // 許可されたディレクトリ内にあるか確認
+  return ALLOWED_DIRECTORIES.some((allowedDir) => {
+    const lowerAllowedDir = allowedDir.toLowerCase();
+    // 正確に一致（大文字小文字を区別しない）
+    if (lowerNormalizedPath === lowerAllowedDir) {
+      return true;
+    }
+    
+    const relPath = path.relative(allowedDir, normalizedPath);
+    // パスが許可されたディレクトリ内にあり、かつディレクトリトラバーサル攻撃を防ぐ
+    return relPath && !relPath.startsWith('..') && !path.isAbsolute(relPath);
+  });
+}
+
+/**
+ * ファイルサイズを人間が読みやすい形式に変換する
+ * @param bytes ファイルサイズ（バイト）
+ * @returns 人間が読みやすいファイルサイズ
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  
+  return `${parseFloat((bytes / Math.pow(1024, i)).toFixed(2))} ${sizes[i]}`;
+}
+
+/**
+ * パス文字列を安全にする（不正な文字を削除）
+ * @param pathStr パス文字列
+ * @returns 安全なパス文字列
+ */
+export function sanitizePath(pathStr: string): string {
+  // パスインジェクションを防ぐための簡易サニタイズ
+  // 実際のアプリケーションではより厳密な検証が必要
+  return pathStr.replace(/\.{2,}\/|\/\.{2,}/g, '');
+}
+</file>
+
+<file path="server/src/server.ts">
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import fileRoutes from './routes/fileRoutes';
+import errorHandler from './middleware/errorHandler';
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// ミドルウェア
+app.use(cors());
+app.use(express.json());
+
+// ルート
+app.use('/api', fileRoutes);
+
+// エラーハンドラー
+app.use(errorHandler);
+
+// サーバー起動
+app.listen(PORT, () => {
+  console.log(`サーバーが起動しました: http://localhost:${PORT}`);
+});
+
+export default app;
+</file>
+
+<file path="server/package.json">
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
+    "test": "jest",
+    "lint": "eslint src --ext .ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.1",
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.11.5",
+    "@types/supertest": "^6.0.2",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.9",
+    "supertest": "^6.3.4",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.8.2"
+  }
+}
+</file>
+
+<file path="server/tsconfig.json">
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@shared/*": ["../shared/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "references": [{ "path": "../shared" }]
+}
+</file>
+
+<file path="shared/types/SearchTypes.ts">
+export interface IFileSearchResult {
+  path: string;
+  fileName: string;
+  extension: string;
+  lastModified: Date;
+  size: number;
+}
+
+export interface ISearchOptions {
+  recursive?: boolean;
+  includeHidden?: boolean;
+  maxResults?: number;
+  timeout?: number;
+}
+
+export interface ISearchRequest {
+  startPath: string;
+  pattern: string;
+  options?: ISearchOptions;
+}
+
+export interface ISearchResponse {
+  results: IFileSearchResult[];
+  totalCount: number;
+  searchTime: number;
+}
+</file>
+
+<file path="shared/package.json">
+{
+  "name": "shared",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
+</file>
+
+<file path="shared/tsconfig.json">
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true
+  },
+  "include": ["**/*.ts"]
+}
+</file>
+
+<file path=".eslintrc.js">
+module.exports = {
+  parser: '@typescript-eslint/parser',
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:react/recommended',
+    'plugin:react-hooks/recommended',
+    'prettier'
+  ],
+  plugins: ['@typescript-eslint', 'react', 'react-hooks'],
+  rules: {
+    'react/prop-types': 'off'
+  },
+  settings: {
+    react: {
+      version: 'detect'
+    }
+  },
+  overrides: [
+    {
+      files: ['*.ts', '*.tsx'],
+      rules: {
+        '@typescript-eslint/explicit-function-return-type': ['error', {
+          allowExpressions: true
+        }]
+      }
+    }
+  ]
+};
+</file>
+
+<file path=".gitignore">
+# 依存関係
+node_modules/
+.pnp/
+.pnp.js
+
+# ビルド結果
+/dist/
+/build/
+/client/build/
+/server/dist/
+/shared/dist/
+
+# 環境変数
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ログ
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# エディタ設定
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS生成ファイル
+.DS_Store
+Thumbs.db
+</file>
+
+<file path=".prettierrc">
+{
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "printWidth": 100,
+  "trailingComma": "es5"
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "file-search-ts",
+  "version": "1.0.0",
+  "description": "TypeScriptベースのファイル検索アプリケーション",
+  "scripts": {
+    "start": "concurrently \"npm run start:server\" \"npm run start:client\"",
+    "start:client": "cd client && npm start",
+    "start:server": "cd server && npm run dev",
+    "build": "npm run build:shared && npm run build:server && npm run build:client",
+    "build:client": "cd client && npm run build",
+    "build:server": "cd server && npm run build",
+    "build:shared": "tsc -p shared/tsconfig.json",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "test": "npm run test:client && npm run test:server",
+    "test:client": "cd client && npm test",
+    "test:server": "cd server && npm test",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write \"**/*.{ts,tsx}\""
+  },
+  "keywords": ["typescript", "react", "express", "file-search"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "eslint": "^8.33.0",
+    "prettier": "^2.8.3",
+    "typescript": "^4.9.5"
+  }
+}
+</file>
+
+<file path="tsconfig.base.json">
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist",
+    "declaration": true,
+    "sourceMap": true
+  }
+}
+</file>
+
+</files>

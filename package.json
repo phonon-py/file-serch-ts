@@ -1,0 +1,31 @@
+{
+  "name": "file-search-ts",
+  "version": "1.0.0",
+  "description": "TypeScriptベースのファイル検索アプリケーション",
+  "scripts": {
+    "start": "concurrently \"npm run start:server\" \"npm run start:client\"",
+    "start:client": "cd client && npm start",
+    "start:server": "cd server && npm run dev",
+    "build": "npm run build:shared && npm run build:server && npm run build:client",
+    "build:client": "cd client && npm run build",
+    "build:server": "cd server && npm run build",
+    "build:shared": "tsc -p shared/tsconfig.json",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "test": "npm run test:client && npm run test:server",
+    "test:client": "cd client && npm test",
+    "test:server": "cd server && npm test",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write \"**/*.{ts,tsx}\""
+  },
+  "keywords": ["typescript", "react", "express", "file-search"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^7.6.0",
+    "eslint": "^8.33.0",
+    "prettier": "^2.8.3",
+    "typescript": "^4.9.5"
+  }
+}
