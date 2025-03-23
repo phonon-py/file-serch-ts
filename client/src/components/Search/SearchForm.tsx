@@ -8,7 +8,7 @@ interface ISearchFormProps {
 }
 
 export const SearchForm: React.FC<ISearchFormProps> = ({ onSearch, isLoading }) => {
-  const [searchPath, setSearchPath] = useState<string>('/users/kimuratoshiyuki/dropbox');
+  const [searchPath, setSearchPath] = useState<string>('/Users/username/Documents');
   const [searchPattern, setSearchPattern] = useState<string>('');
   const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
   const [recursive, setRecursive] = useState<boolean>(true);
