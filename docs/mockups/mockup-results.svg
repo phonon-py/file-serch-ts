@@ -15,7 +15,7 @@
   <!-- 検索パスラベルと入力欄 -->
   <text x="140" y="160" font-family="Arial" font-size="14" fill="#333" font-weight="bold">検索パス:</text>
   <rect x="140" y="170" width="520" height="40" rx="4" ry="4" fill="white" stroke="#ddd" stroke-width="1" />
-  <text x="150" y="195" font-family="Arial" font-size="14" fill="#666">/users/kimuratoshiyuki/dropbox</text>
+  <text x="150" y="195" font-family="Arial" font-size="14" fill="#666">/Users/username/Documents</text>
   
   <!-- 検索パターンラベルと入力欄 -->
   <text x="140" y="235" font-family="Arial" font-size="14" fill="#333" font-weight="bold">検索パターン:</text>
@@ -34,20 +34,20 @@
   <!-- 検索結果リスト -->
   <!-- 結果1 -->
   <rect x="140" y="400" width="520" height="60" rx="4" ry="4" fill="#f9f9f9" stroke="#eee" stroke-width="1" />
-  <text x="155" y="435" font-family="Consolas, monospace" font-size="14" fill="#333">/Users/kimuratoshiyuki/Dropbox/FL_flp_backup/melodic_158_G#min.flp</text>
+  <text x="155" y="435" font-family="Consolas, monospace" font-size="14" fill="#333">/Users/username/Documents</text>
   <rect x="560" y="415" width="80" height="30" rx="4" ry="4" fill="#f1f1f1" stroke="#ddd" stroke-width="1" />
   <text x="600" y="435" font-family="Arial" font-size="12" fill="#333" text-anchor="middle">コピー</text>
   
   <!-- 結果2 -->
   <rect x="140" y="470" width="520" height="60" rx="4" ry="4" fill="#f9f9f9" stroke="#eee" stroke-width="1" />
-  <text x="155" y="505" font-family="Consolas, monospace" font-size="14" fill="#333">/Users/kimuratoshiyuki/Dropbox/melodic_158_G#min.mp3</text>
+  <text x="155" y="505" font-family="Consolas, monospace" font-size="14" fill="#333">/Users/username/Documents</text>
   <rect x="560" y="485" width="80" height="30" rx="4" ry="4" fill="#f1f1f1" stroke="#ddd" stroke-width="1" />
   <text x="600" y="505" font-family="Arial" font-size="12" fill="#333" text-anchor="middle">コピー</text>
   
   <!-- 結果3（別の検索例） -->
   <rect x="140" y="540" width="520" height="60" rx="4" ry="4" fill="#f9f9f9" stroke="#eee" stroke-width="1" />
   <rect opacity="0.3" x="140" y="540" width="520" height="60" rx="4" ry="4" fill="#e6f7ff" />
-  <text x="155" y="575" font-family="Consolas, monospace" font-size="14" fill="#333">/Users/kimuratoshiyuki/Dropbox/Archive/melodic_158_G#min_old.flp</text>
+  <text x="155" y="575" font-family="Consolas, monospace" font-size="14" fill="#333">/Users/username/Documents</text>
   <rect x="560" y="555" width="80" height="30" rx="4" ry="4" fill="#f1f1f1" stroke="#ddd" stroke-width="1" />
   <text x="600" y="575" font-family="Arial" font-size="12" fill="#333" text-anchor="middle">コピー</text>
   
