@@ -45,12 +45,12 @@
     
     <!-- 検索結果リスト -->
     <rect x="140" y="400" width="520" height="60" rx="4" ry="4" fill="#f9f9f9" stroke="#eee" stroke-width="1" />
-    <text x="155" y="435" font-family="Consolas, monospace" font-size="14" fill="#333">/Users/kimuratoshiyuki/Dropbox/FL_flp_backup/melodic_158_G#min.flp</text>
+    <text x="155" y="435" font-family="Consolas, monospace" font-size="14" fill="#333">/Users/username/Documents</text>
     <rect x="560" y="415" width="80" height="30" rx="4" ry="4" fill="#f1f1f1" stroke="#ddd" stroke-width="1" />
     <text x="600" y="435" font-family="Arial" font-size="12" fill="#333" text-anchor="middle">コピー</text>
     
     <rect x="140" y="470" width="520" height="60" rx="4" ry="4" fill="#f9f9f9" stroke="#eee" stroke-width="1" />
-    <text x="155" y="505" font-family="Consolas, monospace" font-size="14" fill="#333">/Users/kimuratoshiyuki/Dropbox/melodic_158_G#min.mp3</text>
+    <text x="155" y="505" font-family="Consolas, monospace" font-size="14" fill="#333">/Users/username/Documents</text>
     <rect x="560" y="485" width="80" height="30" rx="4" ry="4" fill="#f1f1f1" stroke="#ddd" stroke-width="1" />
     <text x="600" y="505" font-family="Arial" font-size="12" fill="#333" text-anchor="middle">コピー</text>
   </g>
