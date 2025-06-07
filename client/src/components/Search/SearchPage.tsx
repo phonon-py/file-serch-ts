@@ -11,6 +11,7 @@ const SearchPage: React.FC = () => {
   const [totalCount, setTotalCount] = useState<number>(0);
   const [searchTime, setSearchTime] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
+  const [isPartialResult, setIsPartialResult] = useState<boolean>(false);
 
   const handleSearch = async (
     path: string, 
@@ -19,18 +20,38 @@ const SearchPage: React.FC = () => {
   ): Promise<void> => {
     setIsLoading(true);
     setError(null);
+    setIsPartialResult(false);
     
     try {
-      const response = await FileSearchService.searchFiles(path, pattern, options);
+      // ローカルタイムアウト（クライアント側の保護）
+      const timeout = options?.timeout || 60000; // デフォルト60秒
+      
+      // タイムアウト付きの検索リクエスト
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout + 5000); // サーバーより少し長め
+      
+      const response = await FileSearchService.searchFiles(path, pattern, options, controller.signal);
+      
+      clearTimeout(timeoutId);
       
       setResults(response.results);
       setTotalCount(response.totalCount);
       setSearchTime(response.searchTime);
+      
+      // サーバーからの部分的な結果を検出
+      if (response.isPartialResult) {
+        setIsPartialResult(true);
+      }
     } catch (err) {
       setResults([]);
       setTotalCount(0);
       setSearchTime(0);
-      setError(err instanceof Error ? err.message : '検索中にエラーが発生しました');
+      
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setError('検索時間が長すぎるため、リクエストがキャンセルされました。検索範囲を狭めるか、より具体的な検索パターンを試してください。');
+      } else {
+        setError(err instanceof Error ? err.message : '検索中にエラーが発生しました');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -38,22 +59,45 @@ const SearchPage: React.FC = () => {
 
   return (
     <div className="search-page">
-      <h1>ファイル検索アプリ</h1>
-      
-      <SearchForm onSearch={handleSearch} isLoading={isLoading} />
-      
-      {error && (
-        <div className="error-message">
-          <p>{error}</p>
+      <div className="hero-section">
+        <div className="hero-content">
+          <h1 className="hero-title">
+            <span className="icon">🔍</span>
+            File Explorer
+          </h1>
+          <p className="hero-subtitle">高速でスマートなファイル検索</p>
         </div>
-      )}
+      </div>
       
-      <SearchResults 
-        results={results} 
-        totalCount={totalCount} 
-        searchTime={searchTime}
-        isLoading={isLoading}
-      />
+      <div className="search-container">
+        <SearchForm onSearch={handleSearch} isLoading={isLoading} />
+        
+        {error && (
+          <div className="error-message">
+            <div className="message-icon">⚠️</div>
+            <div className="message-content">
+              <p>{error}</p>
+            </div>
+          </div>
+        )}
+        
+        {isPartialResult && !error && (
+          <div className="warning-message">
+            <div className="message-icon">ℹ️</div>
+            <div className="message-content">
+              <p>検索時間が長かったため、一部の結果のみ表示しています。より具体的な検索パターンを試してください。</p>
+            </div>
+          </div>
+        )}
+        
+        <SearchResults 
+          results={results} 
+          totalCount={totalCount} 
+          searchTime={searchTime}
+          isLoading={isLoading}
+          isPartialResult={isPartialResult}
+        />
+      </div>
     </div>
   );
 };
