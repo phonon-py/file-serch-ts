@@ -27,11 +27,16 @@ class FileSearchController {
       const results = await FileSearchService.searchFiles(startPath, pattern, options);
       const searchTime = (Date.now() - startTime) / 1000; // 秒単位
 
+      // 部分的な結果かどうかを判定（最大結果数に達した場合）
+      const maxResults = options?.maxResults || 1000;
+      const isPartialResult = results.length >= maxResults;
+
       // レスポンスの作成
       const response: ISearchResponse = {
         results,
         totalCount: results.length,
-        searchTime
+        searchTime,
+        isPartialResult
       };
 
       res.json(response);

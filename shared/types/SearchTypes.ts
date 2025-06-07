@@ -23,4 +23,5 @@ export interface ISearchResponse {
   results: IFileSearchResult[];
   totalCount: number;
   searchTime: number;
+  isPartialResult?: boolean;
 }
