@@ -1,5 +1,3 @@
-// client/src/utils/formatUtils.ts
-
 /**
  * ファイルサイズを人間が読みやすい形式に変換する
  * @param bytes ファイルサイズ（バイト）

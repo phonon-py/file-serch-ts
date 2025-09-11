@@ -1,6 +1,7 @@
 // server/src/utils/fileSystemUtils.ts
 import path from 'path';
 import { ALLOWED_DIRECTORIES } from '../config/allowedDirectories';
+import { formatFileSize } from '@shared/utils/formatUtils';
 
 /**
  * 指定されたパスが許可されたディレクトリ内かを確認する
@@ -33,19 +34,7 @@ export async function isAllowedPath(checkPath: string): Promise<boolean> {
   });
 }
 
-/**
- * ファイルサイズを人間が読みやすい形式に変換する
- * @param bytes ファイルサイズ（バイト）
- * @returns 人間が読みやすいファイルサイズ
- */
-export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
-  
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  
-  return `${parseFloat((bytes / Math.pow(1024, i)).toFixed(2))} ${sizes[i]}`;
-}
+
 
 /**
  * パス文字列を安全にする（不正な文字を削除）
@@ -57,3 +46,6 @@ export function sanitizePath(pathStr: string): string {
   // 実際のアプリケーションではより厳密な検証が必要
   return pathStr.replace(/\.{2,}\/|\/\.{2,}/g, '');
 }
+
+// 共有ユーティリティからre-export
+export { formatFileSize };
