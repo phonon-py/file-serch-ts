@@ -24,7 +24,7 @@ const SearchPage: React.FC = () => {
     
     try {
       // ローカルタイムアウト（クライアント側の保護）
-      const timeout = options?.timeout || 60000; // デフォルト60秒
+      const timeout = options?.timeout || 120000; // デフォルト120秒
       
       // タイムアウト付きの検索リクエスト
       const controller = new AbortController();

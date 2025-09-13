@@ -15,7 +15,17 @@ const errorHandler = (
   res: Response,
   next: NextFunction
 ): void => {
-  console.error('エラーが発生しました:', err);
+  // 詳細なログ出力
+  console.error('=== エラー詳細 ===');
+  console.error('時刻:', new Date().toISOString());
+  console.error('パス:', req.path);
+  console.error('メソッド:', req.method);
+  console.error('クライアントIP:', req.ip);
+  console.error('User-Agent:', req.get('User-Agent'));
+  console.error('Origin:', req.get('Origin'));
+  console.error('エラー:', err);
+  console.error('スタックトレース:', err.stack);
+  console.error('==================');
 
   const statusCode = err.status || 500;
   const message = statusCode === 500 
@@ -26,7 +36,12 @@ const errorHandler = (
     error: message,
     statusCode,
     timestamp: new Date().toISOString(),
-    path: req.path
+    path: req.path,
+    // 開発環境でのみ詳細情報を含める
+    ...(process.env.NODE_ENV === 'development' && {
+      details: err.message,
+      stack: err.stack
+    })
   });
 };
 

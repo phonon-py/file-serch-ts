@@ -1,9 +1,37 @@
 // server/src/controllers/FileSearchController.ts
 import { Request, Response, NextFunction } from 'express';
-import { ISearchRequest, ISearchResponse } from '@shared/types/SearchTypes';
+import { ISearchRequest, ISearchResponse, IDirectoriesResponse } from '@shared/types/SearchTypes';
 import FileSearchService from '../services/FileSearchService';
+import { ALLOWED_DIRECTORIES, getAvailableDirectories } from '../config/allowedDirectories';
 
 class FileSearchController {
+  /**
+   * 許可ディレクトリ一覧を取得する
+   * @param req リクエスト
+   * @param res レスポンス
+   * @param next 次のミドルウェア
+   */
+  public static async getDirectories(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      console.log('ディレクトリ一覧取得リクエスト受信');
+      const startTime = Date.now();
+      
+      // 利用可能なディレクトリを非同期で取得
+      const availableDirectories = await getAvailableDirectories();
+      
+      const duration = Date.now() - startTime;
+      console.log(`ディレクトリ一覧レスポンス: ${duration}ms`);
+      
+      const response: IDirectoriesResponse = {
+        directories: availableDirectories
+      };
+      res.json(response);
+    } catch (error) {
+      console.error('ディレクトリ取得エラー:', error);
+      next(error);
+    }
+  }
+
   /**
    * ファイルを検索する
    * @param req リクエスト

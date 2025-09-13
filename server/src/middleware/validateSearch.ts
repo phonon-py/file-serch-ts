@@ -58,8 +58,8 @@ const validateSearch = (req: Request, res: Response, next: NextFunction): void =
       }
 
       if (timeout !== undefined) {
-        if (typeof timeout !== 'number' || timeout < 1000 || timeout > 60000) {
-          res.status(400).json({ error: 'timeout オプションは1000から60000の間の数値である必要があります' });
+        if (typeof timeout !== 'number' || timeout < 1000 || timeout > 300000) {
+          res.status(400).json({ error: 'timeout オプションは1000から300000の間の数値である必要があります' });
           return;
         }
       }

@@ -25,3 +25,7 @@ export interface ISearchResponse {
   searchTime: number;
   isPartialResult?: boolean;
 }
+
+export interface IDirectoriesResponse {
+  directories: string[];
+}
