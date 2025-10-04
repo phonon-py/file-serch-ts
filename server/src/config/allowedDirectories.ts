@@ -10,7 +10,8 @@ const DEFAULT_ALLOWED_DIRECTORIES = [
   '/Volumes/creative_workspace/000_audio_production/003_demos',
   '/Volumes/creative_workspace/000_audio_production',
   '/Volumes/creative_workspace',
-  '/Users/kimuratoshiyuki/Dropbox'
+  '/Users/kimuratoshiyuki/Dropbox',
+  '/Volumes/creative_workspace/000_audio_production/005_DJ_Edits/iTunes/iTunes Music'
 ];
 
 // 環境変数から許可ディレクトリを取得（カンマ区切り）

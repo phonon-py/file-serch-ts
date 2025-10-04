@@ -63,6 +63,13 @@ const validateSearch = (req: Request, res: Response, next: NextFunction): void =
           return;
         }
       }
+
+      if (options.maxDepth !== undefined) {
+        if (typeof options.maxDepth !== 'number' || options.maxDepth < 1 || options.maxDepth > 10) {
+          res.status(400).json({ error: 'maxDepth オプションは1から10の間の数値である必要があります' });
+          return;
+        }
+      }
     }
 
     // パスのサニタイズ

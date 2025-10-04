@@ -22,7 +22,8 @@ class FileSearchService {
       recursive: true,
       includeHidden: false,
       maxResults: 1000,
-      timeout: 300000 // 300秒（5分）- Tailscale NAS対応
+      timeout: 300000, // 300秒（5分）- Tailscale NAS対応
+      maxDepth: 3 // デフォルト3階層
     };
 
     // オプションのマージ
@@ -70,6 +71,21 @@ class FileSearchService {
   }
 
   /**
+   * 除外すべきディレクトリパターン
+   */
+  private static readonly EXCLUDED_DIRS = new Set([
+    'node_modules',
+    '.git',
+    '.svn',
+    '.hg',
+    'dist',
+    'build',
+    '.next',
+    '.cache',
+    'coverage'
+  ]);
+
+  /**
    * 再帰的に検索する
    */
   private static async recursiveSearch(
@@ -79,14 +95,13 @@ class FileSearchService {
     options: Required<ISearchOptions>,
     currentDepth: number = 0
   ): Promise<void> {
-    // 結果数が上限に達した場合は終了
+    // 早期return: 結果数が上限に達した場合は終了
     if (results.length >= options.maxResults) {
       return;
     }
 
-    // 検索深度の制限（Tailscale NAS最適化）
-    // 深度0: 最上位ディレクトリ、深度1: 1階層下、深度2: 2階層下まで
-    const maxDepth = 2; // バランスの取れた制限
+    // 早期return: 検索深度の制限（Tailscale NAS最適化）
+    const maxDepth = options.maxDepth || 3;
     if (currentDepth >= maxDepth) {
       return;
     }
@@ -94,42 +109,50 @@ class FileSearchService {
     try {
       // ディレクトリ内のファイルとフォルダを取得
       const files = await fs.promises.readdir(currentPath);
-      
-      // 各ファイルを処理（並列処理で高速化）
-      const processPromises = files
-        .filter(file => options.includeHidden || !file.startsWith('.'))
-        .map(async (file) => {
+
+      // 並列処理の同時実行数を制限（メモリ効率向上）
+      const BATCH_SIZE = 20;
+      const filteredFiles = files.filter(file => options.includeHidden || !file.startsWith('.'));
+
+      for (let i = 0; i < filteredFiles.length; i += BATCH_SIZE) {
+        // 早期return: バッチ処理前に結果数チェック
+        if (results.length >= options.maxResults) {
+          return;
+        }
+
+        const batch = filteredFiles.slice(i, i + BATCH_SIZE);
+        const processPromises = batch.map(async (file) => {
           const fullPath = path.join(currentPath, file);
-          
+
           // ファイル名事前フィルタリング（Tailscale NAS最適化）
           const fileName = file.toLowerCase();
           const fullPathLower = fullPath.toLowerCase();
           const matchesPattern = fileName.includes(pattern) || fullPathLower.includes(pattern);
-          
+
           try {
-            // 軽量なファイルタイプチェック（lstat使用）
+            // lstat()のみ使用（stat()二重呼び出し削除 - NAS最適化）
             const stats = await fs.promises.lstat(fullPath);
-            
-            // パターンマッチしないファイルはスキップ（ディレクトリ除く）
-            if (!matchesPattern && !stats.isDirectory()) {
-              return null;
-            }
-            
+
             // ディレクトリの場合
             if (stats.isDirectory()) {
+              // 除外ディレクトリのスキップ
+              if (this.EXCLUDED_DIRS.has(file)) {
+                return null;
+              }
+
               const dirResults = [];
-              
+
               // ディレクトリ名も検索対象に含める
               if (matchesPattern) {
                 dirResults.push({
                   path: fullPath,
                   fileName: path.basename(fullPath),
-                  extension: '', // ディレクトリは拡張子なし
+                  extension: '',
                   lastModified: stats.mtime,
-                  size: 0 // ディレクトリはサイズ0
+                  size: 0
                 });
               }
-              
+
               // 再帰検索を実行
               if (options.recursive) {
                 await this.recursiveSearch(
@@ -140,22 +163,21 @@ class FileSearchService {
                   currentDepth + 1
                 );
               }
-              
+
               return dirResults;
-            } 
-            // ファイルの場合
+            }
+            // ファイルの場合（パターンマッチ時のみ）
             else if (stats.isFile() && matchesPattern) {
-              // より詳細なstat情報が必要な場合のみ追加でstat()実行
-              const detailedStats = await fs.promises.stat(fullPath);
+              // lstat()の結果を直接使用（stat()削除）
               return [{
                 path: fullPath,
                 fileName: path.basename(fullPath),
                 extension: path.extname(fullPath),
-                lastModified: detailedStats.mtime,
-                size: detailedStats.size
+                lastModified: stats.mtime,
+                size: stats.size
               }];
             }
-            
+
             return null;
           } catch (err) {
             // 個々のファイル処理エラーは無視
@@ -164,18 +186,19 @@ class FileSearchService {
           }
         });
 
-      // 並列処理の結果を収集
-      const allResults = await Promise.all(processPromises);
-      
-      // 結果をフラット化して追加
-      for (const fileResults of allResults) {
-        if (fileResults) {
-          for (const result of fileResults) {
-            if (result) {
-              results.push(result);
-              // 結果数が上限に達した場合は終了
-              if (results.length >= options.maxResults) {
-                return;
+        // バッチ単位で並列処理の結果を収集
+        const allResults = await Promise.all(processPromises);
+
+        // 結果をフラット化して追加
+        for (const fileResults of allResults) {
+          if (fileResults) {
+            for (const result of fileResults) {
+              if (result) {
+                results.push(result);
+                // 早期return: 結果数が上限に達した場合は即座に終了
+                if (results.length >= options.maxResults) {
+                  return;
+                }
               }
             }
           }

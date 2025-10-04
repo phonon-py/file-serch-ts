@@ -11,6 +11,7 @@ export interface ISearchOptions {
   includeHidden?: boolean;
   maxResults?: number;
   timeout?: number;
+  maxDepth?: number;
 }
 
 export interface ISearchRequest {
