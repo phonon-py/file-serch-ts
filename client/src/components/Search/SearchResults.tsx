@@ -20,17 +20,43 @@ export const SearchResults: React.FC<ISearchResultsProps> = ({
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const handleCopy = (path: string): void => {
-    navigator.clipboard.writeText(path)
-      .then(() => {
-        setCopiedId(path);
-        // 3秒後にコピー状態をリセット
-        setTimeout(() => setCopiedId(null), 3000);
-      })
-      .catch(err => {
-        console.error('クリップボードへのコピーに失敗しました:', err);
-        alert('パスのコピーに失敗しました');
-      });
+  const handleCopy = async (path: string): Promise<void> => {
+    const ok = await copyToClipboard(path);
+    if (ok) {
+      setCopiedId(path);
+      setTimeout(() => setCopiedId(null), 3000);
+    } else {
+      alert('パスのコピーに失敗しました');
+    }
+  };
+
+  // HTTP (非セキュアコンテキスト) では navigator.clipboard が使えないので execCommand へフォールバック
+  const copyToClipboard = async (text: string): Promise<boolean> => {
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (err) {
+        console.warn('navigator.clipboard 失敗、フォールバックを試行:', err);
+      }
+    }
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.top = '0';
+      textarea.style.left = '0';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const success = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return success;
+    } catch (err) {
+      console.error('クリップボードへのコピーに失敗しました:', err);
+      return false;
+    }
   };
 
   if (isLoading) {

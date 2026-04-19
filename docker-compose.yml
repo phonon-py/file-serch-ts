@@ -14,6 +14,9 @@ services:
       PORT: "3001"
       # コンテナ内で見える検索対象ディレクトリ（読み取り専用マウントと一致させる）
       ALLOWED_DIRECTORIES: ${ALLOWED_DIRECTORIES:-/data/creative_workspace}
+      # クライアント表示用パスマッピング（SMBマウント先などに変換してレスポンス返却）
+      # 書式: "<container>:<display>" をカンマ区切り
+      DISPLAY_PATH_MAP: ${DISPLAY_PATH_MAP:-}
     volumes:
       # NASの creative_workspace を読み取り専用でマウント
       - ${HOST_SEARCH_ROOT:-/volume1/creative_workspace}:/data/creative_workspace:ro

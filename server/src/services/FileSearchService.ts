@@ -23,7 +23,7 @@ class FileSearchService {
       includeHidden: false,
       maxResults: 1000,
       timeout: 300000, // 300秒（5分）- Tailscale NAS対応
-      maxDepth: 3 // デフォルト3階層
+      maxDepth: 5 // デフォルト5階層（NASローカル実行で爆速なので深めに）
     };
 
     // オプションのマージ
@@ -101,7 +101,7 @@ class FileSearchService {
     }
 
     // 早期return: 検索深度の制限（Tailscale NAS最適化）
-    const maxDepth = options.maxDepth || 3;
+    const maxDepth = options.maxDepth || 5;
     if (currentDepth >= maxDepth) {
       return;
     }

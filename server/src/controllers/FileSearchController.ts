@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ISearchRequest, ISearchResponse, IDirectoriesResponse } from '@shared/types/SearchTypes';
 import FileSearchService from '../services/FileSearchService';
 import { ALLOWED_DIRECTORIES, getAvailableDirectories } from '../config/allowedDirectories';
+import { toContainerPath, toDisplayPath } from '../config/pathMapping';
 
 class FileSearchController {
   /**
@@ -23,7 +24,7 @@ class FileSearchController {
       console.log(`ディレクトリ一覧レスポンス: ${duration}ms`);
       
       const response: IDirectoriesResponse = {
-        directories: availableDirectories
+        directories: availableDirectories.map(toDisplayPath)
       };
       res.json(response);
     } catch (error) {
@@ -50,18 +51,21 @@ class FileSearchController {
         return;
       }
 
+      // 表示パス（SMB等）で来た可能性があるのでコンテナ内パスに戻す
+      const containerStartPath = toContainerPath(startPath);
+
       // 検索サービスを呼び出し
       const startTime = Date.now();
-      const results = await FileSearchService.searchFiles(startPath, pattern, options);
+      const results = await FileSearchService.searchFiles(containerStartPath, pattern, options);
       const searchTime = (Date.now() - startTime) / 1000; // 秒単位
 
       // 部分的な結果かどうかを判定（最大結果数に達した場合）
       const maxResults = options?.maxResults || 1000;
       const isPartialResult = results.length >= maxResults;
 
-      // レスポンスの作成
+      // レスポンスの作成: パスを表示用に変換
       const response: ISearchResponse = {
-        results,
+        results: results.map((r) => ({ ...r, path: toDisplayPath(r.path) })),
         totalCount: results.length,
         searchTime,
         isPartialResult
