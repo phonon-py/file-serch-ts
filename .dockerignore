@@ -1,0 +1,35 @@
+# 依存とビルド成果物（コンテナ内で改めてビルドする）
+**/node_modules
+**/dist
+**/build
+
+# Git / エディタ
+.git
+.gitignore
+.vscode
+.idea
+.claude
+
+# 環境変数
+.env
+.env.*
+!.env.example
+
+# ログ・キャッシュ
+*.log
+.eslintcache
+.npm
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ドキュメント・メタ
+docs
+repomix-output.txt
+*.md
+
+# Docker自身
+Dockerfile*
+docker-compose*.yml
+.dockerignore

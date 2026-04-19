@@ -1,0 +1,41 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: file-search-backend:latest
+    container_name: file-search-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      # コンテナ内で見える検索対象ディレクトリ（読み取り専用マウントと一致させる）
+      ALLOWED_DIRECTORIES: ${ALLOWED_DIRECTORIES:-/data/creative_workspace}
+    volumes:
+      # NASの creative_workspace を読み取り専用でマウント
+      - ${HOST_SEARCH_ROOT:-/volume1/creative_workspace}:/data/creative_workspace:ro
+    networks:
+      - file-search-net
+    # 外部にはポート公開しない（nginx経由のみ）
+    expose:
+      - "3001"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        REACT_APP_API_URL: /api
+    image: file-search-frontend:latest
+    container_name: file-search-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${PUBLIC_PORT:-8080}:80"
+    networks:
+      - file-search-net
+
+networks:
+  file-search-net:
+    driver: bridge

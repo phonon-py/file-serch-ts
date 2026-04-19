@@ -99,8 +99,7 @@ error.log
 *.p12
 *.pfx
 
-# Docker関連（将来の拡張用）
-.dockerignore
+# Docker関連
 docker-compose.override.yml
 
 # Vercel関連（将来のデプロイ用）

@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
 import dotenv from 'dotenv';
 import fileRoutes from './routes/fileRoutes';
 import errorHandler from './middleware/errorHandler';
@@ -50,7 +49,6 @@ async function startServer() {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`サーバーが起動しました: http://0.0.0.0:${PORT}`);
       console.log(`ローカルアクセス: http://localhost:${PORT}`);
-      console.log(`Tailscaleアクセス: http://100.68.134.75:${PORT}`);
     });
   } catch (error) {
     console.error('サーバー起動エラー:', error);
