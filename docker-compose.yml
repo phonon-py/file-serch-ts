@@ -6,6 +6,9 @@ services:
     image: file-search-backend:latest
     container_name: file-search-backend
     restart: unless-stopped
+    # UGOS の UGACL が非rootコンテナをブロックするため一時的にrootで起動
+    # （読み取り専用マウントなので影響は検索のみ。UGOS側で権限付与できたら削除する）
+    user: "0:0"
     environment:
       NODE_ENV: production
       PORT: "3001"
