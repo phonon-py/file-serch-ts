@@ -1,6 +1,8 @@
 // client/src/components/Search/SearchForm.tsx
 import React, { useState, useEffect } from 'react';
-import { ISearchOptions, IDirectoriesResponse } from '@shared/types/SearchTypes';
+import { ISearchOptions } from '@shared/types/SearchTypes';
+import FileSearchService from '../../services/FileSearchService';
+import { SearchIcon } from '../Icons';
 
 interface ISearchFormProps {
   onSearch: (path: string, pattern: string, options?: ISearchOptions) => void;
@@ -17,149 +19,114 @@ export const SearchForm: React.FC<ISearchFormProps> = ({ onSearch, isLoading }) 
   const [isLoadingDirectories, setIsLoadingDirectories] = useState<boolean>(true);
 
   useEffect(() => {
-    fetchAvailableDirectories();
+    let active = true;
+    (async () => {
+      try {
+        const directories = await FileSearchService.getDirectories();
+        if (!active) return;
+        setAvailableDirectories(directories);
+        if (directories.length > 0) setSearchPath(directories[0]);
+      } catch (error) {
+        if (active) console.error('ディレクトリ取得失敗:', error);
+      } finally {
+        if (active) setIsLoadingDirectories(false);
+      }
+    })();
+    return () => { active = false; };
   }, []);
-
-  const fetchAvailableDirectories = async () => {
-    try {
-      setIsLoadingDirectories(true);
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
-      
-      // 30秒タイムアウト設定（重い処理対応）
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-      
-      console.log('ディレクトリ一覧取得開始...');
-      const startTime = Date.now();
-      
-      const response = await fetch(`${apiUrl}/directories`, {
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      const duration = Date.now() - startTime;
-      console.log(`ディレクトリ一覧取得完了: ${duration}ms`);
-      const data: IDirectoriesResponse = await response.json();
-      setAvailableDirectories(data.directories || []);
-      
-      // デフォルト値を設定（最初のディレクトリを選択）
-      if (data.directories && data.directories.length > 0) {
-        setSearchPath(data.directories[0]);
-      }
-    } catch (error) {
-      console.error('ディレクトリ取得失敗:', error);
-      
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        console.warn('ディレクトリ取得がタイムアウトしました');
-        // タイムアウト時はデフォルトパスを設定
-        setAvailableDirectories(['/Users/kimuratoshiyuki/Dropbox']);
-        setSearchPath('/Users/kimuratoshiyuki/Dropbox');
-      }
-    } finally {
-      setIsLoadingDirectories(false);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!searchPattern.trim()) return;
-    
-    const options: ISearchOptions = {
-      recursive,
-      includeHidden
-    };
-    
-    onSearch(searchPath, searchPattern, options);
+    onSearch(searchPath, searchPattern, { recursive, includeHidden });
   };
 
   return (
-    <div className="search-form-container">
-      <form className="search-form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="searchPath">検索パス:</label>
-          <select
-            id="searchPath"
-            value={searchPath}
-            onChange={(e) => setSearchPath(e.target.value)}
-            disabled={isLoading || isLoadingDirectories}
-          >
-            {isLoadingDirectories ? (
-              <option value="">読み込み中...</option>
-            ) : (
-              <>
-                <option value="">パスを選択してください</option>
-                {availableDirectories.map((directory) => (
-                  <option key={directory} value={directory}>
-                    {directory}
-                  </option>
-                ))}
-              </>
-            )}
-          </select>
+    <form className="query" onSubmit={handleSubmit}>
+      <p className="query__eyebrow">QUERY / <b>検索</b></p>
+
+      <div className="query__field">
+        <label className="field-label" htmlFor="searchPath">検索パス — TARGET PATH</label>
+        <select
+          id="searchPath"
+          className="select-mono"
+          value={searchPath}
+          onChange={(e) => setSearchPath(e.target.value)}
+          disabled={isLoading || isLoadingDirectories}
+        >
+          {isLoadingDirectories ? (
+            <option value="">読み込み中…</option>
+          ) : (
+            <>
+              <option value="">パスを選択してください</option>
+              {availableDirectories.map((directory) => (
+                <option key={directory} value={directory}>{directory}</option>
+              ))}
+            </>
+          )}
+        </select>
+      </div>
+
+      <div className="query__field">
+        <label className="field-label" htmlFor="searchPattern">検索パターン — PATTERN</label>
+        <input
+          id="searchPattern"
+          className="input-mono input-pattern"
+          type="text"
+          value={searchPattern}
+          onChange={(e) => setSearchPattern(e.target.value)}
+          placeholder="例: report  *.pdf  invoice"
+          autoComplete="off"
+          spellCheck={false}
+          required
+          disabled={isLoading}
+        />
+      </div>
+
+      <div className="query__actions">
+        <button
+          type="button"
+          className="btn-advanced"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          disabled={isLoading}
+        >
+          <span className="btn-advanced__sign">{showAdvanced ? '−' : '+'}</span>
+          {showAdvanced ? '詳細設定を隠す' : '詳細設定'}
+        </button>
+
+        <button
+          type="submit"
+          className="btn-search"
+          disabled={isLoading || !searchPattern.trim() || !searchPath}
+        >
+          <SearchIcon size={16} />
+          {isLoading ? '検索中…' : '検索'}
+        </button>
+      </div>
+
+      {showAdvanced && (
+        <div className="advanced">
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={recursive}
+              onChange={(e) => setRecursive(e.target.checked)}
+              disabled={isLoading}
+            />
+            サブディレクトリを含める
+          </label>
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={includeHidden}
+              onChange={(e) => setIncludeHidden(e.target.checked)}
+              disabled={isLoading}
+            />
+            隠しファイルを含める
+          </label>
         </div>
-        
-        <div className="form-group">
-          <label htmlFor="searchPattern">検索パターン:</label>
-          <input
-            id="searchPattern"
-            type="text"
-            value={searchPattern}
-            onChange={(e) => setSearchPattern(e.target.value)}
-            placeholder="検索するパターンを入力"
-            required
-            disabled={isLoading}
-          />
-        </div>
-        
-        <div className="form-actions">
-          <button 
-            type="button" 
-            className="toggle-advanced"
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            disabled={isLoading}
-          >
-            {showAdvanced ? '詳細設定を隠す' : '詳細設定を表示'}
-          </button>
-          
-          <button 
-            type="submit" 
-            className="search-button"
-            disabled={isLoading || !searchPattern.trim() || !searchPath}
-          >
-            {isLoading ? '検索中...' : '検索'}
-          </button>
-        </div>
-        
-        {showAdvanced && (
-          <div className="advanced-options">
-            <div className="option-group">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={recursive}
-                  onChange={(e) => setRecursive(e.target.checked)}
-                  disabled={isLoading}
-                />
-                サブディレクトリを含める
-              </label>
-            </div>
-            
-            <div className="option-group">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={includeHidden}
-                  onChange={(e) => setIncludeHidden(e.target.checked)}
-                  disabled={isLoading}
-                />
-                隠しファイルを含める
-              </label>
-            </div>
-          </div>
-        )}
-      </form>
-    </div>
+      )}
+    </form>
   );
 };
 

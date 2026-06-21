@@ -1,20 +1,45 @@
 // client/src/services/FileSearchService.ts
-import { 
-  ISearchRequest, 
-  ISearchResponse, 
-  ISearchOptions 
+import {
+  ISearchRequest,
+  ISearchResponse,
+  ISearchOptions,
+  IDirectoriesResponse
 } from '@shared/types/SearchTypes';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
+/** AbortSignal that fires after `ms`, composing with an optional caller signal. */
+function withTimeout(ms: number, signal?: AbortSignal): { signal: AbortSignal; clear: () => void } {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), ms);
+  signal?.addEventListener('abort', () => controller.abort(), { once: true });
+  return { signal: controller.signal, clear: () => clearTimeout(timeoutId) };
+}
+
+const STATUS_MESSAGES: Record<number, string> = {
+  400: '不正なリクエストです。検索パラメータを確認してください。',
+  403: '指定されたパスへのアクセスが許可されていません。',
+  404: '指定されたパスが見つかりません。',
+  408: '検索がタイムアウトしました。検索範囲を狭めるか、より具体的な検索パターンを試してください。',
+  500: 'サーバー内部エラーが発生しました。'
+};
+
 class FileSearchService {
+  /** 検索可能なディレクトリ一覧を取得する。 */
+  public static async getDirectories(timeoutMs = 30000): Promise<string[]> {
+    const { signal, clear } = withTimeout(timeoutMs);
+    try {
+      const response = await fetch(`${API_URL}/directories`, { signal });
+      const data: IDirectoriesResponse = await response.json();
+      return data.directories || [];
+    } finally {
+      clear();
+    }
+  }
+
   /**
-   * ファイル検索APIを呼び出す
-   * @param startPath 検索開始パス
-   * @param pattern 検索パターン
-   * @param options 検索オプション
-   * @param signal AbortControllerからのシグナル（タイムアウト用）
-   * @returns 検索結果
+   * ファイル検索APIを呼び出す。
+   * @param signal 呼び出し側のキャンセル用シグナル（タイムアウト等）
    */
   public static async searchFiles(
     startPath: string,
@@ -22,63 +47,27 @@ class FileSearchService {
     options?: ISearchOptions,
     signal?: AbortSignal
   ): Promise<ISearchResponse> {
-    try {
-      const request: ISearchRequest = {
-        startPath,
-        pattern,
-        options
-      };
+    const request: ISearchRequest = { startPath, pattern, options };
 
-      const response = await fetch(`${API_URL}/search`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(request),
-        signal // AbortControllerのシグナルを渡す
-      });
+    const response = await fetch(`${API_URL}/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+      signal
+    });
 
-      if (!response.ok) {
-        let errorMessage = '検索に失敗しました';
-        
-        // レスポンスのステータスコードに基づいたエラーメッセージ
-        switch (response.status) {
-          case 400:
-            errorMessage = '不正なリクエストです。検索パラメータを確認してください。';
-            break;
-          case 403:
-            errorMessage = '指定されたパスへのアクセスが許可されていません。';
-            break;
-          case 404:
-            errorMessage = '指定されたパスが見つかりません。';
-            break;
-          case 408:
-            errorMessage = '検索がタイムアウトしました。検索範囲を狭めるか、より具体的な検索パターンを試してください。';
-            break;
-          case 500:
-            errorMessage = 'サーバー内部エラーが発生しました。';
-            break;
-        }
-        
-        try {
-          // サーバーからの詳細なエラーメッセージがあれば使用
-          const errorData = await response.json();
-          if (errorData.error) {
-            errorMessage = errorData.error;
-          }
-        } catch (jsonError) {
-          // JSONパースエラーは無視
-        }
-        
-        throw new Error(errorMessage);
+    if (!response.ok) {
+      let message = STATUS_MESSAGES[response.status] || '検索に失敗しました';
+      try {
+        const errorData = await response.json();
+        if (errorData?.error) message = errorData.error;
+      } catch {
+        /* JSONでないレスポンスはステータス由来のメッセージを使う */
       }
-
-      const data: ISearchResponse = await response.json();
-      return data;
-    } catch (error) {
-      console.error('検索エラー:', error);
-      throw error;
+      throw new Error(message);
     }
+
+    return response.json();
   }
 }
 
