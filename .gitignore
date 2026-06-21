@@ -110,3 +110,9 @@ docker-compose.override.yml
 
 # PM2関連（本番環境用）
 ecosystem.config.js
+
+# Claude Code ローカルツール（リポジトリには含めない）
+.claude/
+.agents/
+skills-lock.json
+.serena/
