@@ -57,7 +57,7 @@ npm start
 
 ## 使い方
 
-1. 検索パスを入力（デフォルトは `/Users/kimuratoshiyuki/Dropbox`）
+1. 検索パスを選択（ドロップダウン。候補は `ALLOWED_DIRECTORIES` で設定）
 2. 検索パターンを入力（例: `melodic` や `.mp3`）
 3. オプションの設定（サブディレクトリを含める、隠しファイルを含めるなど）
 4. 検索ボタンをクリック
