@@ -6,7 +6,9 @@ import {
   IDirectoriesResponse
 } from '@shared/types/SearchTypes';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+// 相対パス。dev は CRA の proxy(:3001)、本番は nginx の location /api/ が転送するため、
+// どの端末・どのホストからアクセスしても同一オリジンで到達できる。
+const API_URL = process.env.REACT_APP_API_URL || '/api';
 
 /** AbortSignal that fires after `ms`, composing with an optional caller signal. */
 function withTimeout(ms: number, signal?: AbortSignal): { signal: AbortSignal; clear: () => void } {
