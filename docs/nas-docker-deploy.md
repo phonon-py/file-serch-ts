@@ -30,7 +30,7 @@
 
 ```bash
 # Mac → NAS にソース転送（UGOSのrsyncラッパー対策で tar|ssh を使用）
-cd /Users/kimuratoshiyuki/TypeScriptProjects/file-search-ts
+cd <ローカルのリポジトリパス>/file-search-ts
 tar czf - --exclude node_modules --exclude .git --exclude 'client/build' \
   --exclude 'server/dist' --exclude 'shared/dist' --exclude '.DS_Store' . \
   | ssh Toshiyuki@192.168.1.34 "cd /volume1/docker/file-search && tar xzf -"

@@ -3,10 +3,10 @@ import fs from 'fs';
 
 /**
  * ローカル開発用のフォールバック（環境変数 ALLOWED_DIRECTORIES が未設定のとき使用）
+ * 本番(Docker)では常に ALLOWED_DIRECTORIES を渡すため、ここはホスト直開発時の保険。
  */
 const LOCAL_DEV_FALLBACK = [
-  '/Volumes/creative_workspace',
-  '/Users/kimuratoshiyuki/Dropbox',
+  '/volume1/creative_workspace',
 ];
 
 const envDirectories = process.env.ALLOWED_DIRECTORIES
